@@ -30,7 +30,7 @@ public class Server extends Thread {
             sessionsManager.start();
             while (isAlive()) {
                 Socket clientSocket = serverSocket.accept();
-                SessionThread sessionThread = new SessionThread(clientSocket, sessionsManager.nextSessionID());
+                ServerSessionThread sessionThread = new ServerSessionThread(clientSocket, sessionsManager.nextSessionID());
                 sessionsManager.addSessionThread(sessionThread);
                 sessionThread.start();
             }

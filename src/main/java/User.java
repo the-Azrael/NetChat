@@ -14,16 +14,22 @@ public class User {
         this.pass = pass;
     }
 
+    public User(String id, String login, String pass) {
+        this.id = Integer.parseInt(id);
+        this.login = login;
+        this.pass = pass;
+        this.isAuthorized = true;
+    }
+
     public User() {
         cnt++;
         this.id = cnt;
         this.login = DEFAULT_USER_PREFIX + cnt;
         this.pass = DEFAULT_USER_PASS;
         this.setAuthorized(true);
-        cnt++;
     }
 
-    public static int getId() {
+    public int getId() {
         return id;
     }
 

@@ -11,4 +11,5 @@ public interface Session extends Runnable {
     Socket getClientSocket();
     QueueManager getInMonitor();
     QueueManager getOutMonitor();
+    void process(Message inMessage);
 }

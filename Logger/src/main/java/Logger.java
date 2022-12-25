@@ -1,33 +1,27 @@
-import java.util.concurrent.BlockingQueue;
+import java.io.*;
 
 public class Logger {
-    private static Logger INSTANCE;
-    private static final int SIZE = 1024;
-    private static final HistoryMessages messages = new HistoryMessages(SIZE);
+    private final String filePath;
+    private FileWriter fw;
+    private File logFile;
 
-    private Logger() {
-    }
-
-    public static Logger getInstance() {
-        if (INSTANCE == null) {
-            synchronized (Logger.class) {
-                if (INSTANCE == null) {
-                    INSTANCE = new Logger();
-                }
+    public Logger(String filePath) {
+        this.filePath = filePath;
+        this.logFile = new File(filePath);
+        if (!logFile.exists()) {
+            try {
+                fw = new FileWriter(logFile);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
         }
-        return INSTANCE;
     }
 
-    public static void addMessage(String msg) {
-        messages.addMessage(msg, getInstance().getClass().getName());
-    }
-
-    public static void addMessage(String msg, String className) {
-        messages.addMessage(msg, className);
-    }
-
-    public static BlockingQueue<HistoryMessage> getMessages() {
-        return messages.getHistory();
+    public void write(HistoryMessage message) {
+        try {
+            fw.write(message.toString());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

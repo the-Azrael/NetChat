@@ -1,14 +1,14 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 
-public class ServerInManager implements QueueManager {
+public class ClientInManager implements QueueManager {
     private final BufferedReader in;
     private final Messages messages;
     private volatile boolean isActive = true;
 
-    public ServerInManager(BufferedReader in) {
+    public ClientInManager(BufferedReader in) {
         this.in = in;
-        this.messages = new Messages(64);
+        this.messages = new Messages(16);
     }
 
     @Override
@@ -49,11 +49,10 @@ public class ServerInManager implements QueueManager {
             try {
                 inText = in.readLine();
             } catch (IOException | RuntimeException e) {
-                break;
+                System.out.println(e.getMessage());
             }
             if (inText != null) {
                 ChatMessage chatMessage = new ChatMessage(inText.split(" "));
-                System.out.println("in: " + chatMessage);
                 messages.addElement(chatMessage);
             }
         }

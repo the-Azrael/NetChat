@@ -1,13 +1,13 @@
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class SessionThreadsManager extends Thread {
-    private static final CopyOnWriteArrayList<SessionThread> sessionThreads = new CopyOnWriteArrayList<>();
+    private static final CopyOnWriteArrayList<ServerSessionThread> sessionThreads = new CopyOnWriteArrayList<>();
     private static int sessionCount = 0;
 
     public SessionThreadsManager() {
     }
 
-    public static CopyOnWriteArrayList<SessionThread> getSessionThreads() {
+    public static CopyOnWriteArrayList<ServerSessionThread> getSessionThreads() {
         return sessionThreads;
     }
 
@@ -24,7 +24,7 @@ public class SessionThreadsManager extends Thread {
         return sessionCount;
     }
 
-    public void addSessionThread(SessionThread st) {
+    public void addSessionThread(ServerSessionThread st) {
         sessionThreads.add(st);
     }
 }

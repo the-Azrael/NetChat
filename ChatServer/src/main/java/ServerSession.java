@@ -69,28 +69,7 @@ public class ServerSession implements Session {
     }
 
     @Override
-    public void run() {
-        Thread serverInThread = new Thread(this.serverInMonitor);
-        Thread serverOutThread = new Thread(this.serverOutMonitor);
-        serverInThread.start();
-        serverOutThread.start();
-        System.out.println(this.getClass() + " is started!");
-        serverOutMonitor.addMessage(new ChatMessage(Global.WELCOME));
-        while (isActive || serverInThread.isAlive() || serverOutThread.isAlive()) {
-            if (!serverInMonitor.isEmpty()) {
-                ChatMessage inMessage = serverInMonitor.getMessage();
-                process(inMessage);
-            }
-        }
-        try {
-            System.out.println(this.getClass() + " is stopped!");
-            clientSocket.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void process(Message inMessage) {
+    public void process(Message inMessage) {
         switch (inMessage.getCommand()) {
             case Global.EXIT -> {
                 execExit();
@@ -116,9 +95,35 @@ public class ServerSession implements Session {
                 execSendAll(inMessage);
                 break;
             }
+            case Global.SEND_USER -> {
+                execSendUser(inMessage);
+                break;
+            }
             default -> {
                 return;
             }
+        }
+    }
+
+    @Override
+    public void run() {
+        Thread serverInThread = new Thread(this.serverInMonitor);
+        Thread serverOutThread = new Thread(this.serverOutMonitor);
+        serverInThread.start();
+        serverOutThread.start();
+        System.out.println(this.getClass() + " is started!");
+        serverOutMonitor.addMessage(new ChatMessage(Global.WELCOME));
+        while (isActive && serverInThread.isAlive() && serverOutThread.isAlive()) {
+            if (!serverInMonitor.isEmpty()) {
+                ChatMessage inMessage = serverInMonitor.getMessage();
+                process(inMessage);
+            }
+        }
+        try {
+            System.out.println(this.getClass() + " is stopped!");
+            clientSocket.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -135,7 +140,8 @@ public class ServerSession implements Session {
 
     private void execGetUser(Message inMessage) {
         Message outMessage = new ChatMessage((ChatMessage) inMessage);
-        outMessage.extendArguments(new String[] { getUser().getLogin(), getUser().getPass() });
+        outMessage.extendArguments(
+                new String[] {String.valueOf(getUser().getId()), getUser().getLogin(), getUser().getPass() });
         serverOutMonitor.addMessage((ChatMessage) outMessage);
     }
 
@@ -164,8 +170,26 @@ public class ServerSession implements Session {
         System.arraycopy(msg, 0, extend, args.length + user.length, msg.length);
         System.out.println(Arrays.toString(extend));
         outMessage.setArguments(extend);
-        for (SessionThread st : SessionThreadsManager.getSessionThreads()) {
+        for (ServerSessionThread st : SessionThreadsManager.getSessionThreads()) {
             st.getSession().getOutMonitor().addMessage((ChatMessage) outMessage);
+        }
+    }
+
+    private void execSendUser(Message inMessage) {
+        Message outMessage = new ChatMessage((ChatMessage) inMessage);
+        String userName = outMessage.getArgument(3);
+        String[] args = Arrays.copyOfRange(outMessage.getArguments(), 0, 3);
+        String[] msg = Arrays.copyOfRange(outMessage.getArguments(), 3,outMessage.getArguments().length);
+        String[] user = {getUser().getLogin()};
+        String[] extend = Arrays.copyOf(args, args.length + msg.length + user.length);
+        System.arraycopy(user, 0, extend, args.length, user.length);
+        System.arraycopy(msg, 0, extend, args.length + user.length, msg.length);
+        System.out.println(Arrays.toString(extend));
+        outMessage.setArguments(extend);
+        for (ServerSessionThread st : SessionThreadsManager.getSessionThreads()) {
+            if (st.getSession().getUser().getLogin().equalsIgnoreCase(userName)) {
+                st.getSession().getOutMonitor().addMessage((ChatMessage) outMessage);
+            }
         }
     }
 
