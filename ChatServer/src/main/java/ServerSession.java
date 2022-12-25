@@ -18,7 +18,6 @@ public class ServerSession implements Session {
                 new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream())));
         this.sessionID = sessionID;
         this.user = UserManager.getNewGuest();
-        this.run();
     }
 
     @Override
@@ -105,6 +104,18 @@ public class ServerSession implements Session {
                 execGetUser(inMessage);
                 break;
             }
+            case Global.SHOW_USERS -> {
+                execShowUser(inMessage);
+                break;
+            }
+            case Global.GET_SESSION_ID -> {
+                execGetSessionID(inMessage);
+                break;
+            }
+            case Global.SEND_ALL -> {
+                execSendAll(inMessage);
+                break;
+            }
             default -> {
                 return;
             }
@@ -126,6 +137,36 @@ public class ServerSession implements Session {
         Message outMessage = new ChatMessage((ChatMessage) inMessage);
         outMessage.extendArguments(new String[] { getUser().getLogin(), getUser().getPass() });
         serverOutMonitor.addMessage((ChatMessage) outMessage);
+    }
+
+    private void execShowUser(Message inMessage) {
+        Message outMessage = new ChatMessage((ChatMessage) inMessage);
+        String activeUsers = UserManager.getActiveUsers().toString();
+        System.out.println(activeUsers);
+        outMessage.extendArguments(new String[] { activeUsers });
+        serverOutMonitor.addMessage((ChatMessage) outMessage);
+    }
+
+    private void execGetSessionID(Message inMessage) {
+        Message outMessage = new ChatMessage((ChatMessage) inMessage);
+        String sessionId = String.valueOf(getSessionID());
+        outMessage.extendArguments(new String[] { sessionId });
+        serverOutMonitor.addMessage((ChatMessage) outMessage);
+    }
+
+    private void execSendAll(Message inMessage) {
+        Message outMessage = new ChatMessage((ChatMessage) inMessage);
+        String[] args = Arrays.copyOfRange(outMessage.getArguments(), 0, 3);
+        String[] msg = Arrays.copyOfRange(outMessage.getArguments(), 3,outMessage.getArguments().length);
+        String[] user = {getUser().getLogin()};
+        String[] extend = Arrays.copyOf(args, args.length + msg.length + user.length);
+        System.arraycopy(user, 0, extend, args.length, user.length);
+        System.arraycopy(msg, 0, extend, args.length + user.length, msg.length);
+        System.out.println(Arrays.toString(extend));
+        outMessage.setArguments(extend);
+        for (SessionThread st : SessionThreadsManager.getSessionThreads()) {
+            st.getSession().getOutMonitor().addMessage((ChatMessage) outMessage);
+        }
     }
 
 }

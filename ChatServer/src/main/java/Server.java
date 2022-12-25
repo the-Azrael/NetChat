@@ -5,10 +5,10 @@ import java.net.Socket;
 public class Server extends Thread {
     private static Server INSTANCE;
     private static final int PORT = 50000;
-    private static SessionsManager sessionsManager;
+    private static SessionThreadsManager sessionsManager;
 
     private Server() {
-        sessionsManager = new SessionsManager();
+        sessionsManager = new SessionThreadsManager();
     }
 
     public static Server getInstance() {
@@ -30,8 +30,9 @@ public class Server extends Thread {
             sessionsManager.start();
             while (isAlive()) {
                 Socket clientSocket = serverSocket.accept();
-                ServerSession serverSession = new ServerSession(clientSocket, sessionsManager.nextSessionID());
-                sessionsManager.addSession(serverSession);
+                SessionThread sessionThread = new SessionThread(clientSocket, sessionsManager.nextSessionID());
+                sessionsManager.addSessionThread(sessionThread);
+                sessionThread.start();
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
