@@ -42,17 +42,17 @@ public class ServerOutManager implements ClientServerMessagesQueueManager {
 
     @Override
     public void run() {
-        System.out.println(this.getClass() + " is started!");
+        ServerMain.writeLog(this.getClass() + " is started!");
         while(isActive) {
             if (!isEmpty()) {
                 ClientServerMessage message = clientServerMessages.getMessage();
                 message.setSendTime(System.currentTimeMillis());
-                System.out.println("out: " + message);
+                ServerMain.writeLog("out: " + message);
                 out.println(message);
                 out.flush();
             }
         }
-        System.out.println(this.getClass() + " is stopped!");
+        ServerMain.writeLog(this.getClass() + " is stopped!");
         out.close();
     }
 }

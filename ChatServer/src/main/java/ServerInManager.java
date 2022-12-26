@@ -43,7 +43,7 @@ public class ServerInManager implements ClientServerMessagesQueueManager {
 
     @Override
     public void run() {
-        System.out.println(this.getClass() + " is started!");
+        ServerMain.writeLog(this.getClass() + " is started!");
         while (isActive) {
             String inText = null;
             try {
@@ -53,13 +53,13 @@ public class ServerInManager implements ClientServerMessagesQueueManager {
             }
             if (inText != null) {
                 ClientServerMessage chatMessage = new ClientServerMessage(inText.split(" "));
-                System.out.println("in: " + chatMessage);
+                ServerMain.writeLog("in: " + chatMessage);
                 clientServerMessages.addMessage(chatMessage);
             }
         }
         try {
             in.close();
-            System.out.println(this.getClass() + " is stopped!");
+            ServerMain.writeLog(this.getClass() + " is stopped!");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
