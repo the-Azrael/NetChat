@@ -1,6 +1,7 @@
 import java.io.*;
 import java.net.Socket;
 import java.util.Arrays;
+import java.util.concurrent.Callable;
 
 public class ClientSession implements Session {
     private Socket clientSocket;
@@ -78,17 +79,17 @@ public class ClientSession implements Session {
                 break;
             }
             case (Global.GET_USER) -> {
-                user = new User(inMessage.getArgument(3), inMessage.getArgument(4), inMessage.getArgument(5));
+                user = new User(inMessage.getArgument(0), inMessage.getArgument(1), inMessage.getArgument(2));
                 break;
             }
             case (Global.GET_SESSION_ID) -> {
-                sessionID = Integer.parseInt(inMessage.getArgument(3));
+                sessionID = Integer.parseInt(inMessage.getArguments()[0]);
                 break;
             }
             case (Global.SEND_ALL) -> {
-                String userName = inMessage.getArgument(3);
+                String userName = inMessage.getArguments()[0];
                 String message = String.join(" ",
-                        Arrays.copyOfRange(inMessage.getArguments(), 4, inMessage.getArguments().length));
+                        Arrays.copyOfRange(inMessage.getArguments(), 1, inMessage.getArguments().length));
                 System.out.println(userName + " << " + message);
             }
         }
@@ -103,7 +104,7 @@ public class ClientSession implements Session {
         System.out.println(this.getClass() + " is started!");
         while (isActive || clientInThread.isAlive() || clientOutThread.isAlive()) {
             if (!clientInMonitor.isEmpty()) {
-                ChatMessage inMessage = clientInMonitor.getMessage();
+                ServerMessage inMessage = clientInMonitor.getMessage();
                 process(inMessage);
             }
         }

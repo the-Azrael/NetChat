@@ -1,8 +1,8 @@
 import java.util.concurrent.ArrayBlockingQueue;
 
-public class Messages implements NetChatQueues<ChatMessage> {
+public class Messages implements NetChatQueues<ServerMessage> {
     private final int size;
-    private final ArrayBlockingQueue<ChatMessage> messages;
+    private final ArrayBlockingQueue<ServerMessage> messages;
 
     public Messages(int size) {
         this.size = size;
@@ -15,22 +15,22 @@ public class Messages implements NetChatQueues<ChatMessage> {
     }
 
     @Override
-    public ArrayBlockingQueue<ChatMessage> getMessages() {
+    public ArrayBlockingQueue<ServerMessage> getMessages() {
         return messages;
     }
 
     @Override
-    public void setMessages(ArrayBlockingQueue<ChatMessage> messages) {
+    public void setMessages(ArrayBlockingQueue<ServerMessage> messages) {
         return;
     }
 
     @Override
-    public void addElement(ChatMessage message) {
+    public void addElement(ServerMessage message) {
         messages.offer(message);
     }
 
     @Override
-    public ChatMessage getElement() {
+    public ServerMessage getElement() {
         return messages.poll();
     }
 }

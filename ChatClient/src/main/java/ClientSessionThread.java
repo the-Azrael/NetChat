@@ -2,7 +2,7 @@ import java.io.IOException;
 import java.net.Socket;
 
 public class ClientSessionThread {
-    private final Session session;
+    private final ClientSession session;
     private final Thread sessionThread;
 
     public ClientSessionThread(Socket clientSocket) {
@@ -15,7 +15,7 @@ public class ClientSessionThread {
         }
     }
 
-    public Session getSession() {
+    public ClientSession getSession() {
         return session;
     }
 

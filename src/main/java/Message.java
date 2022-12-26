@@ -1,7 +1,10 @@
+import java.sql.Timestamp;
+
 interface Message {
     int ID_IDX = 0;
     int PARENT_ID_IDX = ID_IDX + 1;
-    int COMMAND_IDX = PARENT_ID_IDX + 1;
+    int SEND_TIME_IDX = PARENT_ID_IDX + 1;
+    int COMMAND_IDX = SEND_TIME_IDX + 1;
     int ARGS_FROM_IDX = COMMAND_IDX + 1;
 
     int getCnt();
@@ -16,5 +19,6 @@ interface Message {
     void setArgument(int idx, String arg);
     String getArgument(int idx);
     String toString();
-    void extendArguments(String[] data);
+    Long getSendTime();
+    void setSendTime(Long dateTime);
 }

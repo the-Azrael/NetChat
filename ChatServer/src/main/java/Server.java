@@ -1,10 +1,12 @@
+import org.json.simple.parser.ParseException;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
 public class Server extends Thread {
     private static Server INSTANCE;
-    private static final int PORT = 50000;
+    private static int port;
     private static SessionThreadsManager sessionsManager;
 
     private Server() {
@@ -25,8 +27,19 @@ public class Server extends Thread {
 
     @Override
     public void run() {
+        try {
+            String currentPath = new java.io.File(".").getCanonicalPath();
+            System.out.println(currentPath);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        try {
+            port = new ConfigReader(".//config_server.json").load().getPort();
+        } catch (IOException | ParseException e) {
+            throw new RuntimeException(e);
+        }
         System.out.println(Server.class + " is started!");
-        try (ServerSocket serverSocket = new ServerSocket(PORT)) {
+        try (ServerSocket serverSocket = new ServerSocket(port)) {
             sessionsManager.start();
             while (isAlive()) {
                 Socket clientSocket = serverSocket.accept();

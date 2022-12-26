@@ -1,4 +1,5 @@
 import java.net.Socket;
+import java.util.concurrent.Callable;
 
 public interface Session extends Runnable {
     void setSessionID(int sessionID);

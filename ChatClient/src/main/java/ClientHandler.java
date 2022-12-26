@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Scanner;
+import java.util.concurrent.*;
 
 public class ClientHandler extends Thread {
     private final String HOST = "localhost";
@@ -8,7 +9,7 @@ public class ClientHandler extends Thread {
     private Socket socket;
     private ClientSessionThread clientSessionThread;
     private Scanner scanner;
-    private boolean isActive = true;
+    private volatile boolean isActive = true;
     private int lvl = 1;
 
     public void showMenu() {
@@ -55,7 +56,7 @@ public class ClientHandler extends Thread {
         switch (choice) {
             case ("1"): {
                 if (isConnected()) {
-                    sendAuth(new Authorization().authorize());
+                    sendGetUser();
                 } else {
                     System.out.println("Не запущено соединение с сервером!");
                 }
@@ -92,8 +93,8 @@ public class ClientHandler extends Thread {
             } else if(lvl == 2) {
                 showAllChatMenu();
                 String message = getChoice(" >> ");
-                ChatMessage chatMessage = new ChatMessage(Global.SEND_ALL);
-                chatMessage.extendArguments(new String[] { message });
+                ServerMessage chatMessage = new ServerMessage(Global.SEND_ALL);
+                chatMessage.setArguments(new String[] {message});
                 clientSessionThread.getSession().getOutMonitor().addMessage(chatMessage);
             }
         }
@@ -110,7 +111,7 @@ public class ClientHandler extends Thread {
             throw new RuntimeException(e);
         }
         clientSessionThread = new ClientSessionThread(socket);
-        clientSessionThread.getSession().getOutMonitor().addMessage(new ChatMessage(Global.GET_SESSION_ID));
+        clientSessionThread.getSession().getOutMonitor().addMessage(new ServerMessage(Global.GET_SESSION_ID));
     }
 
     private boolean isConnected() {
@@ -124,7 +125,10 @@ public class ClientHandler extends Thread {
     }
 
     private void sendAuth(User user) {
-        System.out.println();
-        clientSessionThread.getSession().getOutMonitor().addMessage(new ChatMessage(Global.GET_USER));
+        clientSessionThread.getSession().getOutMonitor().addMessage(new ServerMessage(Global.GET_USER));
+    }
+
+    private void sendGetUser() {
+        clientSessionThread.getSession().getOutMonitor().addMessage(new ServerMessage(Global.GET_USER));
     }
 }

@@ -6,6 +6,4 @@ public interface NetChatQueues<T> {
     void setMessages(ArrayBlockingQueue<T> messages);
     void addElement(T element);
     T getElement();
-
-
 }

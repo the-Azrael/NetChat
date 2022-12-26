@@ -1,5 +1,6 @@
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.Arrays;
 
 public class ServerInManager implements QueueManager {
     private final BufferedReader in;
@@ -17,12 +18,12 @@ public class ServerInManager implements QueueManager {
     }
 
     @Override
-    public void addMessage(ChatMessage message) {
+    public void addMessage(ServerMessage message) {
         messages.addElement(message);
     }
 
     @Override
-    public ChatMessage getMessage() {
+    public ServerMessage getMessage() {
         return messages.getElement();
     }
 
@@ -52,7 +53,7 @@ public class ServerInManager implements QueueManager {
                 break;
             }
             if (inText != null) {
-                ChatMessage chatMessage = new ChatMessage(inText.split(" "));
+                ServerMessage chatMessage = new ServerMessage(inText.split(" "));
                 System.out.println("in: " + chatMessage);
                 messages.addElement(chatMessage);
             }

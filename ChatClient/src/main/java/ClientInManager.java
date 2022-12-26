@@ -17,12 +17,12 @@ public class ClientInManager implements QueueManager {
     }
 
     @Override
-    public void addMessage(ChatMessage message) {
+    public void addMessage(ServerMessage message) {
         messages.addElement(message);
     }
 
     @Override
-    public ChatMessage getMessage() {
+    public ServerMessage getMessage() {
         return messages.getElement();
     }
 
@@ -49,10 +49,11 @@ public class ClientInManager implements QueueManager {
             try {
                 inText = in.readLine();
             } catch (IOException | RuntimeException e) {
-                System.out.println(e.getMessage());
+                break;
             }
             if (inText != null) {
-                ChatMessage chatMessage = new ChatMessage(inText.split(" "));
+                ServerMessage chatMessage = new ServerMessage(inText.split(" "));
+                System.out.println("in: " + chatMessage);
                 messages.addElement(chatMessage);
             }
         }

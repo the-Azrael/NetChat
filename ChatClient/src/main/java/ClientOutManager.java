@@ -16,12 +16,12 @@ public class ClientOutManager implements QueueManager {
     }
 
     @Override
-    public void addMessage(ChatMessage message) {
+    public void addMessage(ServerMessage message) {
         messages.addElement(message);
     }
 
     @Override
-    public ChatMessage getMessage() {
+    public ServerMessage getMessage() {
         return messages.getElement();
     }
 
@@ -45,7 +45,9 @@ public class ClientOutManager implements QueueManager {
         System.out.println(this.getClass() + " is started!");
         while(isActive) {
             if (!isEmpty()) {
-                ChatMessage message = messages.getElement();
+                ServerMessage message = messages.getElement();
+                message.setSendTime(System.currentTimeMillis());
+                System.out.println("out: " + message);
                 out.println(message);
                 out.flush();
             }
