@@ -25,12 +25,12 @@ public class Messages implements NetChatQueues<ServerMessage> {
     }
 
     @Override
-    public void addElement(ServerMessage message) {
+    public void addMessage(ServerMessage message) {
         messages.offer(message);
     }
 
     @Override
-    public ServerMessage getElement() {
+    public ServerMessage getMessage() {
         return messages.poll();
     }
 }

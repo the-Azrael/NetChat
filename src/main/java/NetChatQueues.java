@@ -4,6 +4,6 @@ public interface NetChatQueues<T> {
     int getSize();
     ArrayBlockingQueue<T> getMessages();
     void setMessages(ArrayBlockingQueue<T> messages);
-    void addElement(T element);
-    T getElement();
+    void addMessage(T element);
+    T getMessage();
 }
