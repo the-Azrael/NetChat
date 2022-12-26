@@ -5,8 +5,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class Server extends Thread {
-    private static Server INSTANCE;
-    private static int port;
+    private static volatile Server INSTANCE;
     private static SessionThreadsManager sessionsManager;
 
     private Server() {
@@ -27,11 +26,7 @@ public class Server extends Thread {
 
     @Override
     public void run() {
-        try {
-            String currentPath = new java.io.File(".").getCanonicalPath();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        int port;
         try {
             port = new ConfigReader(".//config_server.json").load().getPort();
         } catch (IOException | ParseException e) {
