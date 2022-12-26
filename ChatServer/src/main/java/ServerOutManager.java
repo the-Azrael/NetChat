@@ -1,28 +1,28 @@
 import java.io.PrintWriter;
 
-public class ServerOutManager implements QueueManager{
+public class ServerOutManager implements ClientServerMessagesQueueManager {
     private final PrintWriter out;
-    private final Messages messages;
+    private final ClientServerMessages clientServerMessages;
     private volatile boolean isActive = true;
 
     public ServerOutManager(PrintWriter out) {
         this.out = out;
-        messages = new Messages(64);
+        clientServerMessages = new ClientServerMessages(64);
     }
 
     @Override
-    public Messages getMessages() {
-        return messages;
+    public ClientServerMessages getMessages() {
+        return clientServerMessages;
     }
 
     @Override
-    public void addMessage(ServerMessage message) {
-        messages.addMessage(message);
+    public void addMessage(ClientServerMessage message) {
+        clientServerMessages.addMessage(message);
     }
 
     @Override
-    public ServerMessage getMessage() {
-        return messages.getMessage();
+    public ClientServerMessage getMessage() {
+        return clientServerMessages.getMessage();
     }
 
     @Override
@@ -37,7 +37,7 @@ public class ServerOutManager implements QueueManager{
 
     @Override
     public boolean isEmpty() {
-        return messages.getMessages().isEmpty();
+        return clientServerMessages.getMessages().isEmpty();
     }
 
     @Override
@@ -45,7 +45,7 @@ public class ServerOutManager implements QueueManager{
         System.out.println(this.getClass() + " is started!");
         while(isActive) {
             if (!isEmpty()) {
-                ServerMessage message = messages.getMessage();
+                ClientServerMessage message = clientServerMessages.getMessage();
                 message.setSendTime(System.currentTimeMillis());
                 System.out.println("out: " + message);
                 out.println(message);

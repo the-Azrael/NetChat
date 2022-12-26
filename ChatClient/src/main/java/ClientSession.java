@@ -1,21 +1,20 @@
 import java.io.*;
 import java.net.Socket;
 import java.util.Arrays;
-import java.util.concurrent.Callable;
 
 public class ClientSession implements Session {
     private Socket clientSocket;
     private int sessionID;
     private User user;
-    private final ClientInManager clientInMonitor;
-    private final ClientOutManager clientOutMonitor;
+    private final ClientInManagerClientServerMessages clientInMonitor;
+    private final ClientOutManagerClientServerMessages clientOutMonitor;
     private volatile boolean isActive = true;
 
     public ClientSession(Socket clientSocket) throws IOException {
         this.clientSocket = clientSocket;
-        this.clientInMonitor = new ClientInManager(
+        this.clientInMonitor = new ClientInManagerClientServerMessages(
                 new BufferedReader(new InputStreamReader(clientSocket.getInputStream())));
-        this.clientOutMonitor = new ClientOutManager(
+        this.clientOutMonitor = new ClientOutManagerClientServerMessages(
                 new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream())));
         this.sessionID = 0;
         this.user = null;
@@ -62,12 +61,12 @@ public class ClientSession implements Session {
     }
 
     @Override
-    public QueueManager getInMonitor() {
+    public ClientServerMessagesQueueManager getInMonitor() {
         return clientInMonitor;
     }
 
     @Override
-    public QueueManager getOutMonitor() {
+    public ClientServerMessagesQueueManager getOutMonitor() {
         return clientOutMonitor;
     }
 
@@ -104,7 +103,7 @@ public class ClientSession implements Session {
         System.out.println(this.getClass() + " is started!");
         while (isActive || clientInThread.isAlive() || clientOutThread.isAlive()) {
             if (!clientInMonitor.isEmpty()) {
-                ServerMessage inMessage = clientInMonitor.getMessage();
+                ClientServerMessage inMessage = clientInMonitor.getMessage();
                 process(inMessage);
             }
         }

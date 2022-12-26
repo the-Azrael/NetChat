@@ -29,7 +29,6 @@ public class Server extends Thread {
     public void run() {
         try {
             String currentPath = new java.io.File(".").getCanonicalPath();
-            System.out.println(currentPath);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -38,7 +37,7 @@ public class Server extends Thread {
         } catch (IOException | ParseException e) {
             throw new RuntimeException(e);
         }
-        System.out.println(Server.class + " is started!");
+        ServerMain.writeLog(Server.class + " is started!");
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             sessionsManager.start();
             while (isAlive()) {

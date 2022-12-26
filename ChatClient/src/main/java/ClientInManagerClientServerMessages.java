@@ -1,29 +1,29 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 
-public class ClientInManager implements QueueManager {
+public class ClientInManagerClientServerMessages implements ClientServerMessagesQueueManager {
     private final BufferedReader in;
-    private final Messages messages;
+    private final ClientServerMessages clientServerMessages;
     private volatile boolean isActive = true;
 
-    public ClientInManager(BufferedReader in) {
+    public ClientInManagerClientServerMessages(BufferedReader in) {
         this.in = in;
-        this.messages = new Messages(16);
+        this.clientServerMessages = new ClientServerMessages(16);
     }
 
     @Override
-    public Messages getMessages() {
-        return messages;
+    public ClientServerMessages getMessages() {
+        return clientServerMessages;
     }
 
     @Override
-    public void addMessage(ServerMessage message) {
-        messages.addMessage(message);
+    public void addMessage(ClientServerMessage message) {
+        clientServerMessages.addMessage(message);
     }
 
     @Override
-    public ServerMessage getMessage() {
-        return messages.getMessage();
+    public ClientServerMessage getMessage() {
+        return clientServerMessages.getMessage();
     }
 
     @Override
@@ -38,7 +38,7 @@ public class ClientInManager implements QueueManager {
 
     @Override
     public boolean isEmpty() {
-        return messages.getMessages().isEmpty();
+        return clientServerMessages.getMessages().isEmpty();
     }
 
     @Override
@@ -52,9 +52,9 @@ public class ClientInManager implements QueueManager {
                 break;
             }
             if (inText != null) {
-                ServerMessage chatMessage = new ServerMessage(inText.split(" "));
+                ClientServerMessage chatMessage = new ClientServerMessage(inText.split(" "));
                 System.out.println("in: " + chatMessage);
-                messages.addMessage(chatMessage);
+                clientServerMessages.addMessage(chatMessage);
             }
         }
         try {

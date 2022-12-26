@@ -16,6 +16,7 @@ public class ConfigReader {
         JSONObject jsonServerConfig = (JSONObject) new JSONParser().parse(fr);
         String strPort = String.valueOf(jsonServerConfig.get("port"));
         int port = Integer.parseInt(strPort);
+        ServerMain.writeLog(this.getClass().getName() + " config loaded from " + fileName);
         return new ServerConfig(port);
     }
 }

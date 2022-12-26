@@ -1,5 +1,4 @@
 import java.net.Socket;
-import java.util.concurrent.Callable;
 
 public interface Session extends Runnable {
     void setSessionID(int sessionID);
@@ -10,7 +9,7 @@ public interface Session extends Runnable {
     User getUser();
     void setClientSocket(Socket clientSocket);
     Socket getClientSocket();
-    QueueManager getInMonitor();
-    QueueManager getOutMonitor();
+    ClientServerMessagesQueueManager getInMonitor();
+    ClientServerMessagesQueueManager getOutMonitor();
     void process(Message inMessage);
 }

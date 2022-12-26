@@ -13,7 +13,7 @@ public class SessionThreadsManager extends Thread {
 
     @Override
     public void run() {
-        System.out.println(SessionThreadsManager.class + " is started!");
+        ServerMain.writeLog(SessionThreadsManager.class + " is started!");
         while (true) {
             sessionThreads.removeIf(s -> !s.getSession().isActive());
         }

@@ -1,7 +1,6 @@
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Scanner;
-import java.util.concurrent.*;
 
 public class ClientHandler extends Thread {
     private final String HOST = "localhost";
@@ -93,7 +92,7 @@ public class ClientHandler extends Thread {
             } else if(lvl == 2) {
                 showAllChatMenu();
                 String message = getChoice(" >> ");
-                ServerMessage chatMessage = new ServerMessage(Global.SEND_ALL);
+                ClientServerMessage chatMessage = new ClientServerMessage(Global.SEND_ALL);
                 chatMessage.setArguments(new String[] {message});
                 clientSessionThread.getSession().getOutMonitor().addMessage(chatMessage);
             }
@@ -111,7 +110,7 @@ public class ClientHandler extends Thread {
             throw new RuntimeException(e);
         }
         clientSessionThread = new ClientSessionThread(socket);
-        clientSessionThread.getSession().getOutMonitor().addMessage(new ServerMessage(Global.GET_SESSION_ID));
+        clientSessionThread.getSession().getOutMonitor().addMessage(new ClientServerMessage(Global.GET_SESSION_ID));
     }
 
     private boolean isConnected() {
@@ -125,10 +124,10 @@ public class ClientHandler extends Thread {
     }
 
     private void sendAuth(User user) {
-        clientSessionThread.getSession().getOutMonitor().addMessage(new ServerMessage(Global.GET_USER));
+        clientSessionThread.getSession().getOutMonitor().addMessage(new ClientServerMessage(Global.GET_USER));
     }
 
     private void sendGetUser() {
-        clientSessionThread.getSession().getOutMonitor().addMessage(new ServerMessage(Global.GET_USER));
+        clientSessionThread.getSession().getOutMonitor().addMessage(new ClientServerMessage(Global.GET_USER));
     }
 }

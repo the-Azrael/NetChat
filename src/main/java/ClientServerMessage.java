@@ -1,8 +1,6 @@
-import java.sql.Timestamp;
 import java.util.Arrays;
 
-public class ServerMessage implements Message {
-    //private final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss.SSSS");
+public class ClientServerMessage implements Message {
     private static int cnt = 0;
     private int id = 0;
     private int parentId = 0;
@@ -10,7 +8,7 @@ public class ServerMessage implements Message {
     private Long sendTime;
     private String[] arguments;
 
-    public ServerMessage(String basicCommand) {
+    public ClientServerMessage(String basicCommand) {
         this.id = getCnt();
         this.parentId = Global.NEW_COMMAND;
         this.sendTime = System.currentTimeMillis();
@@ -18,7 +16,7 @@ public class ServerMessage implements Message {
         this.arguments = new String[] {"no-args"};
     }
 
-    public ServerMessage(String[] args) {
+    public ClientServerMessage(String[] args) {
         try {
             this.id = Integer.parseInt(args[ID_IDX]);
             this.parentId = Integer.parseInt(args[PARENT_ID_IDX]);
@@ -30,7 +28,7 @@ public class ServerMessage implements Message {
         }
     }
 
-    public ServerMessage(ServerMessage message) {
+    public ClientServerMessage(ClientServerMessage message) {
         this.id = getCnt();
         this.parentId = message.getId();
         this.command = message.getCommand();
@@ -38,7 +36,7 @@ public class ServerMessage implements Message {
         this.arguments = message.getArguments();
     }
 
-    public ServerMessage(ServerMessage message, String[] args) {
+    public ClientServerMessage(ClientServerMessage message, String[] args) {
         this.id = getCnt();
         this.parentId = message.getId();
         this.command = message.getCommand();
