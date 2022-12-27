@@ -1,7 +1,7 @@
 
 final class ServerMain {
-    public static final String moduleName = "ChatServer";
-    public static int pos;
+    public static String moduleName = "ChatServer";
+    public static int pos = -1;
     public static void main(String[] args) {
         HistoryManager.addModuleName(moduleName);
         pos = HistoryManager.getIdx(moduleName);

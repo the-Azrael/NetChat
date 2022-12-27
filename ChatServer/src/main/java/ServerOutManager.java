@@ -48,7 +48,6 @@ public class ServerOutManager implements ClientServerMessagesQueueManager {
                 ClientServerMessage message = clientServerMessages.getMessage();
                 message.setSendTime(System.currentTimeMillis());
                 ServerMain.writeLog("out: " + message);
-                System.out.println("out: " + message);
                 out.println(message);
                 out.flush();
             }

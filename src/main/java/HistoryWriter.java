@@ -1,3 +1,0 @@
-interface HistoryWriter extends Runnable {
-
-}

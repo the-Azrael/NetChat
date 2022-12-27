@@ -19,19 +19,13 @@ public class ClientServerMessage implements Message {
     }
 
     public ClientServerMessage(String[] args) {
-        try {
-            this.id = Integer.parseInt(args[ID_IDX]);
-            this.parentId = Integer.parseInt(args[PARENT_ID_IDX]);
-            this.sendTime = Long.valueOf(args[SEND_TIME_IDX]);
-            this.command = args[COMMAND_IDX];
-            String[] ext_args = Arrays.copyOfRange(args, Message.ARGS_FROM_IDX, args.length);
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < ext_args.length; i++) {
-                sb.append(ext_args[i]);
-                this.arguments.add(ext_args[i]);
-            }
-        } catch (RuntimeException e) {
-            System.out.println(e.getMessage());
+        this.id = Integer.parseInt(args[ID_IDX]);
+        this.parentId = Integer.parseInt(args[PARENT_ID_IDX]);
+        this.sendTime = Long.valueOf(args[SEND_TIME_IDX]);
+        this.command = args[COMMAND_IDX];
+        String[] ext_args = Arrays.copyOfRange(args, Message.ARGS_FROM_IDX, args.length);
+        for (int i = 0; i < ext_args.length; i++) {
+            this.arguments.add(ext_args[i]);
         }
     }
 
@@ -50,7 +44,6 @@ public class ClientServerMessage implements Message {
         this.command = message.getCommand();
         this.arguments = Arrays.stream(args).toList();
     }
-
 
     @Override
     public int getCnt() {

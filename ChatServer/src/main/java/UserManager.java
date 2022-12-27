@@ -39,8 +39,8 @@ public class UserManager {
         }
     }
 
-    public static User authorize(User oldUser, User user) {
-        User newUser = find(user);
+    public static User authorize(User oldUser, User findUser) {
+        User newUser = find(findUser);
         if (newUser != null) {
             logout(oldUser);
             newUser.setAuthorized(true);

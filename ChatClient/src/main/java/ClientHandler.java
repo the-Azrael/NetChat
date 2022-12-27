@@ -41,9 +41,6 @@ public class ClientHandler extends Thread {
         }
         System.out.println("№ сессии: " + sessionId);
         System.out.println("Пользователь: " + userName);
-
-
-
     }
 
     private String getChoice(String requestText) {
@@ -75,7 +72,7 @@ public class ClientHandler extends Thread {
                     connect();
                 }
             }
-            case ("6") -> deactivate();
+            case ("6") -> exit();
         }
     }
 
@@ -109,7 +106,9 @@ public class ClientHandler extends Thread {
         }
     }
 
-    private void deactivate() {
+    private void exit() {
+        ClientServerMessage outMessage = new ClientServerMessage(Global.EXIT);
+        clientSessionThread.getSession().getOutMonitor().addMessage(outMessage);
         isActive = false;
     }
 

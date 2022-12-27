@@ -1,6 +1,7 @@
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -75,6 +76,7 @@ public class ServerSession implements Session {
         switch (inMessage.getCommand()) {
             case Global.EXIT -> execExit();
             case Global.ECHO -> execEcho((ClientServerMessage) inMessage);
+            case Global.AUTH -> execAuth((ClientServerMessage) inMessage);
             case Global.GET_USER -> execGetUser((ClientServerMessage) inMessage);
             case Global.SHOW_USERS -> execShowUsers((ClientServerMessage) inMessage);
             case Global.GET_SESSION_ID -> execGetSessionID((ClientServerMessage) inMessage);
@@ -90,8 +92,9 @@ public class ServerSession implements Session {
         serverInThread.start();
         serverOutThread.start();
         ServerMain.writeLog(this.getClass() + " is started!");
+        serverInManager.addMessage(new ClientServerMessage(Global.GET_USER));
+        serverInManager.addMessage(new ClientServerMessage(Global.GET_SESSION_ID));
         serverOutManager.addMessage(new ClientServerMessage(Global.WELCOME));
-
         while (isActive && serverInThread.isAlive() && serverOutThread.isAlive()) {
             if (!serverInManager.isEmpty()) {
                 ClientServerMessage inMessage = serverInManager.getMessage();
@@ -136,6 +139,21 @@ public class ServerSession implements Session {
         List<String> newArgs = new ArrayList<>();
         newArgs.add(sessionId);
         outMessage.setArguments(newArgs);
+        serverOutManager.addMessage(outMessage);
+    }
+
+    private void execAuth(ClientServerMessage inMessage) {
+        ClientServerMessage outMessage = new ClientServerMessage(inMessage);
+        User findUser = new User(inMessage.getArgument(Message.USER_ID)
+                , inMessage.getArgument(Message.USER_LOGIN_ID)
+                , inMessage.getArgument(Message.USER_PASS_ID));
+        User newUser = UserManager.authorize(getUser(), findUser);
+        List<String> args = Arrays.asList(
+                String.valueOf(newUser.getId()),
+                newUser.getLogin(),
+                newUser.getPass()
+        );
+        outMessage.setArguments(args);
         serverOutManager.addMessage(outMessage);
     }
 
