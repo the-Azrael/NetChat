@@ -1,29 +1,17 @@
+import java.io.IOException;
 
 final class ServerMain {
     public static String moduleName = "ChatServer";
     public static int pos = -1;
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         HistoryManager.addModuleName(moduleName);
         pos = HistoryManager.getIdx(moduleName);
-        writeLog(ServerMain.class.getName() + " is started!");
+        writeLog("Server application is started!");
         Server.getInstance().start();
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (true) {
-                    try {
-                        HistoryMessagesForClasses h = HistoryManager.getHistoryById(pos);
-                        for (HistoryMessage m : h.getHistoryMessages().getMessages()) {
-                            System.out.println(m);
-                        }
-                        Thread.sleep(10000);
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            }
-        });
-        thread.start();
+        Thread logWriter = new Thread(
+                new ServerHistoryWriter("./serverFile.log", HistoryManager.getHistoryById(pos).getHistoryMessages()));
+        logWriter.start();
+        writeLog("LogWriter is started!");
     }
 
     public static void writeLog(String message) {

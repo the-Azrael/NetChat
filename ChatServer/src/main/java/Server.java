@@ -33,7 +33,7 @@ public class Server extends Thread {
         } catch (IOException | ParseException e) {
             throw new RuntimeException(e);
         }
-        ServerMain.writeLog(Server.class + " is started!");
+        ServerMain.writeLog("Server is started!");
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             sessionsManager.start();
             while (isAlive()) {

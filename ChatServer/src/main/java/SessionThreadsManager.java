@@ -5,6 +5,7 @@ public class SessionThreadsManager extends Thread {
     private static int sessionCount = 0;
 
     public SessionThreadsManager() {
+        setName("SessionThread - " + sessionCount);
     }
 
     public static CopyOnWriteArrayList<ServerSessionThread> getSessionThreads() {
@@ -13,7 +14,7 @@ public class SessionThreadsManager extends Thread {
 
     @Override
     public void run() {
-        ServerMain.writeLog(SessionThreadsManager.class + " is started!");
+        ServerMain.writeLog(getName() + " is started!");
         while (true) {
             sessionThreads.removeIf(s -> !s.getSession().isActive());
         }
