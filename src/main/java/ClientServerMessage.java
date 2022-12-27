@@ -1,4 +1,6 @@
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class ClientServerMessage implements Message {
     private static int cnt = 0;
@@ -6,14 +8,14 @@ public class ClientServerMessage implements Message {
     private int parentId = 0;
     private String command;
     private Long sendTime;
-    private String[] arguments;
+    private List<String> arguments = new ArrayList<>();
 
     public ClientServerMessage(String basicCommand) {
         this.id = getCnt();
         this.parentId = Global.NEW_COMMAND;
         this.sendTime = System.currentTimeMillis();
         this.command = basicCommand;
-        this.arguments = new String[] {"no-args"};
+        this.arguments.add("no-args");
     }
 
     public ClientServerMessage(String[] args) {
@@ -22,7 +24,9 @@ public class ClientServerMessage implements Message {
             this.parentId = Integer.parseInt(args[PARENT_ID_IDX]);
             this.command = args[COMMAND_IDX];
             this.sendTime = Long.valueOf(args[SEND_TIME_IDX]);
-            this.arguments = Arrays.copyOfRange(args, ARGS_FROM_IDX, args.length);
+            for (int i = 0; i < args.length; i++) {
+                this.arguments.add(args[i]);
+            }
         } catch (RuntimeException e) {
             System.out.println(e.getMessage());
         }
@@ -41,7 +45,7 @@ public class ClientServerMessage implements Message {
         this.parentId = message.getId();
         this.command = message.getCommand();
         this.sendTime = message.getSendTime();
-        this.arguments = args;
+        this.arguments = Arrays.stream(args).toList();
     }
 
 
@@ -82,23 +86,23 @@ public class ClientServerMessage implements Message {
     }
 
     @Override
-    public void setArguments(String[] args) {
+    public void setArguments(List<String> args) {
         this.arguments = args;
     }
 
     @Override
-    public String[] getArguments() {
+    public List<String> getArguments() {
         return this.arguments;
     }
 
     @Override
     public void setArgument(int idx, String arg) {
-        this.arguments[idx] = arg;
+        this.arguments.set(idx, arg);
     }
 
     @Override
     public String getArgument(int idx) {
-        return arguments[idx];
+        return this.arguments.get(idx);
     }
 
     @Override
@@ -119,6 +123,12 @@ public class ClientServerMessage implements Message {
     @Override
     public void setSendTime(Long dateTime) {
         sendTime = dateTime;
+    }
+
+    public void addToArguments(String[] args) {
+        for (int i = 0; i < args.length; i++) {
+            this.arguments.add(args[i]);
+        }
     }
 
 }

@@ -8,4 +8,5 @@ public class Global {
     public static final String SEND_USER = "/send_user";
     public static final String SEND_ALL = "/send_all";
     public static final int NEW_COMMAND = 0;
+    public static final String SPLITTER = " ";
 }

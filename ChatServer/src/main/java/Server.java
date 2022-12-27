@@ -5,6 +5,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class Server extends Thread {
+    private static final String CONFIG_FILE_PATH = ".//config_server.json";
     private static volatile Server INSTANCE;
     private static SessionThreadsManager sessionsManager;
 
@@ -28,7 +29,7 @@ public class Server extends Thread {
     public void run() {
         int port;
         try {
-            port = new ConfigReader(".//config_server.json").load().getPort();
+            port = new ConfigReader(CONFIG_FILE_PATH).load().getPort();
         } catch (IOException | ParseException e) {
             throw new RuntimeException(e);
         }

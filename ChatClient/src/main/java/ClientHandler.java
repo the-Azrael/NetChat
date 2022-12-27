@@ -1,15 +1,15 @@
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class ClientHandler extends Thread {
-    private final String HOST = "localhost";
-    private final int PORT = 50000;
-    private Socket socket;
     private ClientSessionThread clientSessionThread;
     private Scanner scanner;
     private volatile boolean isActive = true;
     private int lvl = 1;
+    private volatile String toUser = "";
 
     public void showMenu() {
         int sessionId = 0;
@@ -53,32 +53,29 @@ public class ClientHandler extends Thread {
 
     private void handleChoice(String choice) {
         switch (choice) {
-            case ("1"): {
+            case ("1") -> {
                 if (isConnected()) {
                     sendGetUser();
                 } else {
                     System.out.println("Не запущено соединение с сервером!");
                 }
-                break;
             }
-            case ("3"): {
+            case ("3") -> {
                 if (isConnected()) {
                     lvl = 2;
                 }
             }
-            case ("5"): {
+            case ("4") -> {
+                if (isConnected()) {
+                    lvl = 3;
+                }
+            }
+            case ("5") -> {
                 if (!isConnected()) {
                     connect();
                 }
-                break;
             }
-            case ("6"): {
-                deactivate();
-                break;
-            }
-            default: {
-                break;
-            }
+            case ("6") -> deactivate();
         }
     }
 
@@ -89,11 +86,23 @@ public class ClientHandler extends Thread {
             if (lvl == 1) {
                 showMenu();
                 handleChoice(getChoice("Выбирите пункт: "));
-            } else if(lvl == 2) {
+            } else if (lvl == 2) {
                 showAllChatMenu();
                 String message = getChoice(" >> ");
                 ClientServerMessage chatMessage = new ClientServerMessage(Global.SEND_ALL);
-                chatMessage.setArguments(new String[] {message});
+                List<String> args = new ArrayList<>();
+                args.add(clientSessionThread.getSession().getUser().getLogin());
+                chatMessage.setArguments(args);
+                chatMessage.addToArguments(message.split(Global.SPLITTER));
+                clientSessionThread.getSession().getOutMonitor().addMessage(chatMessage);
+            } else if (lvl == 3) {
+                showAllChatMenu();
+                String message = getChoice(" >> ");
+                ClientServerMessage chatMessage = new ClientServerMessage(Global.SEND_USER);
+                List<String> args = new ArrayList<>();
+                args.add(clientSessionThread.getSession().getUser().getLogin());
+                args.add(toUser);
+                chatMessage.addToArguments(message.split(Global.SPLITTER));
                 clientSessionThread.getSession().getOutMonitor().addMessage(chatMessage);
             }
         }
@@ -104,7 +113,10 @@ public class ClientHandler extends Thread {
     }
 
     private void connect() {
+        Socket socket;
         try {
+            String HOST = "localhost";
+            int PORT = 50000;
             socket = new Socket(HOST, PORT);
         } catch (IOException e) {
             throw new RuntimeException(e);

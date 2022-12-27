@@ -1,6 +1,8 @@
 import java.io.*;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class ClientSession implements Session {
     private Socket clientSocket;
@@ -9,6 +11,7 @@ public class ClientSession implements Session {
     private final ClientInManagerClientServerMessages clientInMonitor;
     private final ClientOutManagerClientServerMessages clientOutMonitor;
     private volatile boolean isActive = true;
+    private List<String> activeUsers = new ArrayList<>();
 
     public ClientSession(Socket clientSocket) throws IOException {
         this.clientSocket = clientSocket;
@@ -73,24 +76,28 @@ public class ClientSession implements Session {
     @Override
     public void process(Message inMessage) {
         switch (inMessage.getCommand()) {
+            case (Global.WELCOME) -> {
+                System.out.println("Приветствие от сервера!");
+            }
             case (Global.EXIT) -> {
                 execExit();
-                break;
             }
             case (Global.GET_USER) -> {
                 user = new User(inMessage.getArgument(0), inMessage.getArgument(1), inMessage.getArgument(2));
-                break;
             }
             case (Global.GET_SESSION_ID) -> {
-                sessionID = Integer.parseInt(inMessage.getArguments()[0]);
-                break;
+                sessionID = Integer.parseInt(inMessage.getArgument(0));
             }
             case (Global.SEND_ALL) -> {
-                String userName = inMessage.getArguments()[0];
-                String message = String.join(" ",
-                        Arrays.copyOfRange(inMessage.getArguments(), 1, inMessage.getArguments().length));
-                System.out.println(userName + " << " + message);
+                List<String> l = inMessage.getArguments();
+                String userTo = l.remove(0);
+                String userFrom = l.remove(0);
+                StringBuilder message = new StringBuilder();
+                l.forEach(message::append);
+                System.out.println(userFrom + " >> " + message);
+
             }
+            default -> throw new IllegalStateException("Unexpected value: " + inMessage.getCommand());
         }
     }
 
@@ -119,5 +126,13 @@ public class ClientSession implements Session {
         clientInMonitor.deactivate();
         clientOutMonitor.deactivate();
         isActive = false;
+    }
+
+    public void setActiveUsers(List<String> activeUsers) {
+        this.activeUsers = activeUsers;
+    }
+
+    public List<String> getActiveUsers() {
+        return activeUsers;
     }
 }

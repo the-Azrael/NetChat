@@ -1,6 +1,8 @@
 import java.io.*;
 import java.net.Socket;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class ServerSession implements Session {
     private final Socket clientSocket;
@@ -72,12 +74,12 @@ public class ServerSession implements Session {
     public void process(Message inMessage) {
         switch (inMessage.getCommand()) {
             case Global.EXIT -> execExit();
-            case Global.ECHO -> execEcho(inMessage);
-            case Global.GET_USER -> execGetUser(inMessage);
-            case Global.SHOW_USERS -> execShowUser(inMessage);
-            case Global.GET_SESSION_ID -> execGetSessionID(inMessage);
-            case Global.SEND_ALL -> execSendAll(inMessage);
-            case Global.SEND_USER -> execSendUser(inMessage);
+            case Global.ECHO -> execEcho((ClientServerMessage) inMessage);
+            case Global.GET_USER -> execGetUser((ClientServerMessage) inMessage);
+            case Global.SHOW_USERS -> execShowUsers((ClientServerMessage) inMessage);
+            case Global.GET_SESSION_ID -> execGetSessionID((ClientServerMessage) inMessage);
+            case Global.SEND_ALL -> execSendAll((ClientServerMessage) inMessage);
+            case Global.SEND_USER -> execSendUser((ClientServerMessage) inMessage);
         }
     }
 
@@ -109,55 +111,48 @@ public class ServerSession implements Session {
         isActive = false;
     }
 
-    private void execEcho(Message inMessage) {
-        ClientServerMessage outMessage = new ClientServerMessage((ClientServerMessage) inMessage);
+    private void execEcho(ClientServerMessage inMessage) {
+        ClientServerMessage outMessage = new ClientServerMessage(inMessage);
         serverOutMonitor.addMessage(outMessage);
     }
 
-    private void execGetUser(Message inMessage) {
-        String[] args = new String[] {String.valueOf(getUser().getId()), getUser().getLogin(), getUser().getPass() };
-        ClientServerMessage outMessage = new ClientServerMessage((ClientServerMessage) inMessage, args);
+    private void execGetUser(ClientServerMessage inMessage) {
+        String[] args = new String[] { String.valueOf(getUser().getId()), getUser().getLogin(), getUser().getPass() };
+        ClientServerMessage outMessage = new ClientServerMessage(inMessage, args);
         serverOutMonitor.addMessage(outMessage);
     }
 
-    private void execShowUser(Message inMessage) {
-        ClientServerMessage outMessage = new ClientServerMessage((ClientServerMessage) inMessage);
-        String activeUsers = UserManager.getActiveUsers().toString();
-        outMessage.setArguments(new String[] { activeUsers });
+    private void execShowUsers(ClientServerMessage inMessage) {
+        ClientServerMessage outMessage = new ClientServerMessage(inMessage);
+        List<User> activeUsers = UserManager.getActiveUsers();
+        outMessage.setArguments(activeUsers.stream().map(User::getLogin).collect(Collectors.toList()));
         serverOutMonitor.addMessage(outMessage);
     }
 
-    private void execGetSessionID(Message inMessage) {
-        ClientServerMessage outMessage = new ClientServerMessage((ClientServerMessage) inMessage);
+    private void execGetSessionID(ClientServerMessage inMessage) {
+        ClientServerMessage outMessage = new ClientServerMessage(inMessage);
         String sessionId = String.valueOf(getSessionID());
-        outMessage.setArguments(new String[] { sessionId });
+        List<String> newArgs = new ArrayList<>();
+        newArgs.add(sessionId);
+        outMessage.setArguments(newArgs);
         serverOutMonitor.addMessage(outMessage);
     }
 
-    private void execSendAll(Message inMessage) {
-        ClientServerMessage outMessage = new ClientServerMessage((ClientServerMessage) inMessage);
-        String[] args = Arrays.copyOfRange(outMessage.getArguments(), 0, 3);
-        String[] msg = Arrays.copyOfRange(outMessage.getArguments(), 3,outMessage.getArguments().length);
-        String[] user = {getUser().getLogin()};
-        String[] extend = Arrays.copyOf(args, args.length + msg.length + user.length);
-        System.arraycopy(user, 0, extend, args.length, user.length);
-        System.arraycopy(msg, 0, extend, args.length + user.length, msg.length);
-        outMessage.setArguments(extend);
+    private void execSendAll(ClientServerMessage inMessage) {
+        ClientServerMessage outMessage = new ClientServerMessage(inMessage);
+        List<String> newArgs = new ArrayList<>();
+        newArgs.add(getUser().getLogin());
+        inMessage.getArguments().forEach(newArgs::add);
+        outMessage.setArguments(newArgs);
         for (ServerSessionThread st : SessionThreadsManager.getSessionThreads()) {
             st.getSession().getOutMonitor().addMessage(outMessage);
         }
     }
 
-    private void execSendUser(Message inMessage) {
-        ClientServerMessage outMessage = new ClientServerMessage((ClientServerMessage) inMessage);
-        String userName = outMessage.getArgument(3);
-        String[] args = Arrays.copyOfRange(outMessage.getArguments(), 0, 3);
-        String[] msg = Arrays.copyOfRange(outMessage.getArguments(), 3,outMessage.getArguments().length);
-        String[] user = {getUser().getLogin()};
-        String[] extend = Arrays.copyOf(args, args.length + msg.length + user.length);
-        System.arraycopy(user, 0, extend, args.length, user.length);
-        System.arraycopy(msg, 0, extend, args.length + user.length, msg.length);
-        outMessage.setArguments(extend);
+    private void execSendUser(ClientServerMessage inMessage) {
+        ClientServerMessage outMessage = new ClientServerMessage(inMessage);
+        String userName = outMessage.getArgument(Message.USER_TO_IDX);
+
         for (ServerSessionThread st : SessionThreadsManager.getSessionThreads()) {
             if (st.getSession().getUser().getLogin().equalsIgnoreCase(userName)) {
                 st.getSession().getOutMonitor().addMessage(outMessage);

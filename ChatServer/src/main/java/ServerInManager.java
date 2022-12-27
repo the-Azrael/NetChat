@@ -52,7 +52,7 @@ public class ServerInManager implements ClientServerMessagesQueueManager {
                 break;
             }
             if (inText != null) {
-                ClientServerMessage chatMessage = new ClientServerMessage(inText.split(" "));
+                ClientServerMessage chatMessage = new ClientServerMessage(inText.split(Global.SPLITTER));
                 ServerMain.writeLog("in: " + chatMessage);
                 clientServerMessages.addMessage(chatMessage);
             }
