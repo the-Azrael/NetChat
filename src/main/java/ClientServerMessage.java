@@ -15,17 +15,20 @@ public class ClientServerMessage implements Message {
         this.parentId = Global.NEW_COMMAND;
         this.sendTime = System.currentTimeMillis();
         this.command = basicCommand;
-        this.arguments.add("no-args");
+        this.arguments.add(Message.NO_ARGS);
     }
 
     public ClientServerMessage(String[] args) {
         try {
             this.id = Integer.parseInt(args[ID_IDX]);
             this.parentId = Integer.parseInt(args[PARENT_ID_IDX]);
-            this.command = args[COMMAND_IDX];
             this.sendTime = Long.valueOf(args[SEND_TIME_IDX]);
-            for (int i = 0; i < args.length; i++) {
-                this.arguments.add(args[i]);
+            this.command = args[COMMAND_IDX];
+            String[] ext_args = Arrays.copyOfRange(args, Message.ARGS_FROM_IDX, args.length);
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < ext_args.length; i++) {
+                sb.append(ext_args[i]);
+                this.arguments.add(ext_args[i]);
             }
         } catch (RuntimeException e) {
             System.out.println(e.getMessage());
@@ -35,16 +38,16 @@ public class ClientServerMessage implements Message {
     public ClientServerMessage(ClientServerMessage message) {
         this.id = getCnt();
         this.parentId = message.getId();
+        this.sendTime = System.currentTimeMillis();
         this.command = message.getCommand();
-        this.sendTime = message.getSendTime();
         this.arguments = message.getArguments();
     }
 
     public ClientServerMessage(ClientServerMessage message, String[] args) {
         this.id = getCnt();
         this.parentId = message.getId();
+        this.sendTime = System.currentTimeMillis();
         this.command = message.getCommand();
-        this.sendTime = message.getSendTime();
         this.arguments = Arrays.stream(args).toList();
     }
 

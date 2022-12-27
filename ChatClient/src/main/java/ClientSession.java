@@ -1,23 +1,22 @@
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class ClientSession implements Session {
     private Socket clientSocket;
     private int sessionID;
     private User user;
-    private final ClientInManagerClientServerMessages clientInMonitor;
-    private final ClientOutManagerClientServerMessages clientOutMonitor;
+    private final ClientInManager clientInMonitor;
+    private final ClientOutManager clientOutMonitor;
     private volatile boolean isActive = true;
     private List<String> activeUsers = new ArrayList<>();
 
     public ClientSession(Socket clientSocket) throws IOException {
         this.clientSocket = clientSocket;
-        this.clientInMonitor = new ClientInManagerClientServerMessages(
+        this.clientInMonitor = new ClientInManager(
                 new BufferedReader(new InputStreamReader(clientSocket.getInputStream())));
-        this.clientOutMonitor = new ClientOutManagerClientServerMessages(
+        this.clientOutMonitor = new ClientOutManager(
                 new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream())));
         this.sessionID = 0;
         this.user = null;
@@ -83,7 +82,9 @@ public class ClientSession implements Session {
                 execExit();
             }
             case (Global.GET_USER) -> {
+                System.out.println(inMessage);
                 user = new User(inMessage.getArgument(0), inMessage.getArgument(1), inMessage.getArgument(2));
+
             }
             case (Global.GET_SESSION_ID) -> {
                 sessionID = Integer.parseInt(inMessage.getArgument(0));

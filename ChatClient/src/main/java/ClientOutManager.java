@@ -1,13 +1,12 @@
-import java.io.BufferedReader;
-import java.io.IOException;
+import java.io.PrintWriter;
 
-public class ClientInManagerClientServerMessages implements ClientServerMessagesQueueManager {
-    private final BufferedReader in;
+public class ClientOutManager implements ClientServerMessagesQueueManager {
+    private final PrintWriter out;
     private final ClientServerMessages clientServerMessages;
     private volatile boolean isActive = true;
 
-    public ClientInManagerClientServerMessages(BufferedReader in) {
-        this.in = in;
+    public ClientOutManager(PrintWriter out) {
+        this.out = out;
         this.clientServerMessages = new ClientServerMessages(16);
     }
 
@@ -44,24 +43,16 @@ public class ClientInManagerClientServerMessages implements ClientServerMessages
     @Override
     public void run() {
         System.out.println(this.getClass() + " is started!");
-        while (isActive) {
-            String inText = null;
-            try {
-                inText = in.readLine();
-            } catch (IOException | RuntimeException e) {
-                break;
-            }
-            if (inText != null) {
-                ClientServerMessage chatMessage = new ClientServerMessage(inText.split(" "));
-                System.out.println("in: " + chatMessage);
-                clientServerMessages.addMessage(chatMessage);
+        while(isActive) {
+            if (!isEmpty()) {
+                ClientServerMessage message = clientServerMessages.getMessage();
+                message.setSendTime(System.currentTimeMillis());
+                System.out.println("out: " + message);
+                out.println(message);
+                out.flush();
             }
         }
-        try {
-            in.close();
-            System.out.println(this.getClass() + " is stopped!");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        System.out.println(this.getClass() + " is stopped!");
+        out.close();
     }
 }

@@ -101,8 +101,9 @@ public class ClientHandler extends Thread {
                 ClientServerMessage chatMessage = new ClientServerMessage(Global.SEND_USER);
                 List<String> args = new ArrayList<>();
                 args.add(clientSessionThread.getSession().getUser().getLogin());
-                args.add(toUser);
-                chatMessage.addToArguments(message.split(Global.SPLITTER));
+                args.add(clientSessionThread.getSession().getUser().getLogin());
+                args.add(message);
+                chatMessage.setArguments(args);
                 clientSessionThread.getSession().getOutMonitor().addMessage(chatMessage);
             }
         }

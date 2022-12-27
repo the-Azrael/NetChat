@@ -10,7 +10,8 @@ interface Message {
     int USER_FROM_IDX = 0;
     int USER_TO_IDX = USER_FROM_IDX + 1;
     int MESSAGE_IDX = USER_TO_IDX + 1;
-    int SESSION_ID_IDX = 0;
+    int SESSION_ID_IDX = 1;
+    String NO_ARGS = "no-args";
 
     int getCnt();
     void setId(int id);

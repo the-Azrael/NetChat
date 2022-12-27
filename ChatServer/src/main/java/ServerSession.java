@@ -8,15 +8,15 @@ public class ServerSession implements Session {
     private final Socket clientSocket;
     private final int sessionID;
     private User user;
-    private final ServerInManager serverInMonitor;
-    private final ServerOutManager serverOutMonitor;
+    private final ServerInManager serverInManager;
+    private final ServerOutManager serverOutManager;
     private volatile boolean isActive = true;
 
     public ServerSession(Socket clientSocket, int sessionID) throws IOException {
         this.clientSocket = clientSocket;
-        this.serverInMonitor = new ServerInManager(
+        this.serverInManager = new ServerInManager(
                 new BufferedReader(new InputStreamReader(clientSocket.getInputStream())));
-        this.serverOutMonitor = new ServerOutManager(
+        this.serverOutManager = new ServerOutManager(
                 new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream())));
         this.sessionID = sessionID;
         this.user = UserManager.getNewGuest();
@@ -62,12 +62,12 @@ public class ServerSession implements Session {
 
     @Override
     public ClientServerMessagesQueueManager getInMonitor() {
-        return this.serverInMonitor;
+        return this.serverInManager;
     }
 
     @Override
     public ClientServerMessagesQueueManager getOutMonitor() {
-        return serverOutMonitor;
+        return serverOutManager;
     }
 
     @Override
@@ -85,15 +85,16 @@ public class ServerSession implements Session {
 
     @Override
     public void run() {
-        Thread serverInThread = new Thread(this.serverInMonitor);
-        Thread serverOutThread = new Thread(this.serverOutMonitor);
+        Thread serverInThread = new Thread(this.serverInManager);
+        Thread serverOutThread = new Thread(this.serverOutManager);
         serverInThread.start();
         serverOutThread.start();
         ServerMain.writeLog(this.getClass() + " is started!");
-        serverOutMonitor.addMessage(new ClientServerMessage(Global.WELCOME));
+        serverOutManager.addMessage(new ClientServerMessage(Global.WELCOME));
+
         while (isActive && serverInThread.isAlive() && serverOutThread.isAlive()) {
-            if (!serverInMonitor.isEmpty()) {
-                ClientServerMessage inMessage = serverInMonitor.getMessage();
+            if (!serverInManager.isEmpty()) {
+                ClientServerMessage inMessage = serverInManager.getMessage();
                 process(inMessage);
             }
         }
@@ -106,27 +107,27 @@ public class ServerSession implements Session {
     }
 
     private void execExit() {
-        serverInMonitor.deactivate();
-        serverOutMonitor.deactivate();
+        serverInManager.deactivate();
+        serverOutManager.deactivate();
         isActive = false;
     }
 
     private void execEcho(ClientServerMessage inMessage) {
         ClientServerMessage outMessage = new ClientServerMessage(inMessage);
-        serverOutMonitor.addMessage(outMessage);
+        serverOutManager.addMessage(outMessage);
     }
 
     private void execGetUser(ClientServerMessage inMessage) {
         String[] args = new String[] { String.valueOf(getUser().getId()), getUser().getLogin(), getUser().getPass() };
         ClientServerMessage outMessage = new ClientServerMessage(inMessage, args);
-        serverOutMonitor.addMessage(outMessage);
+        serverOutManager.addMessage(outMessage);
     }
 
     private void execShowUsers(ClientServerMessage inMessage) {
         ClientServerMessage outMessage = new ClientServerMessage(inMessage);
         List<User> activeUsers = UserManager.getActiveUsers();
         outMessage.setArguments(activeUsers.stream().map(User::getLogin).collect(Collectors.toList()));
-        serverOutMonitor.addMessage(outMessage);
+        serverOutManager.addMessage(outMessage);
     }
 
     private void execGetSessionID(ClientServerMessage inMessage) {
@@ -135,26 +136,29 @@ public class ServerSession implements Session {
         List<String> newArgs = new ArrayList<>();
         newArgs.add(sessionId);
         outMessage.setArguments(newArgs);
-        serverOutMonitor.addMessage(outMessage);
+        serverOutManager.addMessage(outMessage);
     }
 
     private void execSendAll(ClientServerMessage inMessage) {
         ClientServerMessage outMessage = new ClientServerMessage(inMessage);
         List<String> newArgs = new ArrayList<>();
-        newArgs.add(getUser().getLogin());
+        newArgs.add(inMessage.getArguments().remove(Message.USER_FROM_IDX));
+        newArgs.add("userTo");
         inMessage.getArguments().forEach(newArgs::add);
-        outMessage.setArguments(newArgs);
         for (ServerSessionThread st : SessionThreadsManager.getSessionThreads()) {
+            newArgs.set(Message.USER_TO_IDX, st.getSession().getUser().getLogin());
+            outMessage.setArguments(newArgs);
+            StringBuilder sb = new StringBuilder();
+            outMessage.getArguments().forEach(sb::append);
             st.getSession().getOutMonitor().addMessage(outMessage);
         }
     }
 
     private void execSendUser(ClientServerMessage inMessage) {
         ClientServerMessage outMessage = new ClientServerMessage(inMessage);
-        String userName = outMessage.getArgument(Message.USER_TO_IDX);
-
+        String userTo = outMessage.getArgument(Message.USER_TO_IDX);
         for (ServerSessionThread st : SessionThreadsManager.getSessionThreads()) {
-            if (st.getSession().getUser().getLogin().equalsIgnoreCase(userName)) {
+            if (st.getSession().getUser().getLogin().equalsIgnoreCase(userTo)) {
                 st.getSession().getOutMonitor().addMessage(outMessage);
             }
         }
