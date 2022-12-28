@@ -3,7 +3,7 @@ import java.io.IOException;
 final class ServerMain {
     public static String moduleName = "ChatServer";
     public static int pos = -1;
-    private static final String LOG_FILE_PATH = "./serverFile.log";
+    public static final String LOG_FILE_PATH = "./serverFile.log";
     public static void main(String[] args) throws IOException {
         HistoryManager.addModuleName(moduleName);
         pos = HistoryManager.getIdx(moduleName);

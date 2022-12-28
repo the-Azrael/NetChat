@@ -10,7 +10,7 @@ interface Message {
     int USER_FROM_IDX = 0;
     int USER_TO_IDX = USER_FROM_IDX + 1;
     int MESSAGE_IDX = USER_TO_IDX + 1;
-    int SESSION_ID_IDX = 1;
+    int SESSION_IDX = 0;
     int USER_IDX = 0;
     int USER_LOGIN_IDX = USER_IDX + 1;
     int USER_NAME_IDX = USER_LOGIN_IDX + 1;

@@ -165,10 +165,12 @@ public class ServerSession implements Session {
                 , inMessage.getArgument(Message.USER_NAME_IDX)
                 , inMessage.getArgument(Message.USER_PASS_IDX));
         User newUser = UserManager.authorize(getUser(), findUser);
+        user = newUser;
         List<String> args = Arrays.asList(
-                String.valueOf(newUser.getId()),
-                newUser.getLogin(),
-                newUser.getPass()
+                String.valueOf(user.getId()),
+                user.getLogin(),
+                user.getName(),
+                user.getPass()
         );
         outMessage.setArguments(args);
         serverOutManager.addMessage(outMessage);

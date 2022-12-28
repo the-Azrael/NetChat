@@ -7,6 +7,6 @@ public class Authorization {
         String login = scanner.nextLine();
         System.out.println("Пароль: ");
         String pass = scanner.nextLine();
-        return new User(login, "", pass);
+        return new User(login, login, pass);
     }
 }

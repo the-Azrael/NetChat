@@ -76,29 +76,11 @@ public class ClientSession implements Session {
     public void process(Message inMessage) {
         switch (inMessage.getCommand()) {
             case Global.GET_WELCOME -> System.out.println("Приветствие от сервера!");
+            case Global.AUTH, Global.GET_USER, Global.CHANGE_NAME -> execGetUser((ClientServerMessage) inMessage);
             case Global.EXIT -> execExit();
-            case Global.GET_USER -> {
-                System.out.println(inMessage);
-                user = new User(inMessage.getArgument(Message.USER_IDX)
-                        , inMessage.getArgument(Message.USER_LOGIN_IDX)
-                        , inMessage.getArgument(Message.USER_NAME_IDX)
-                        , inMessage.getArgument(Message.USER_PASS_IDX));
-
-            }
-            case Global.GET_SESSION_ID -> sessionID = Integer.parseInt(inMessage.getArgument(0));
-            case Global.GET_ACTIVE_USERS -> {
-                List<String> st = inMessage.getArguments();
-                System.out.println(st.toString());
-            }
-            case Global.SEND_ALL -> {
-                List<String> l = inMessage.getArguments();
-                String userTo = l.remove(0);
-                String userFrom = l.remove(0);
-                StringBuilder message = new StringBuilder();
-                l.forEach(message::append);
-                System.out.println(userFrom + " >> " + message);
-
-            }
+            case Global.GET_SESSION_ID -> execSession((ClientServerMessage) inMessage);
+            case Global.GET_ACTIVE_USERS -> execGetActiveUsers((ClientServerMessage) inMessage);
+            case Global.SEND_ALL -> execSendAll((ClientServerMessage) inMessage);
             default -> throw new IllegalStateException("Unexpected value: " + inMessage.getCommand());
         }
     }
@@ -124,14 +106,36 @@ public class ClientSession implements Session {
             throw new RuntimeException(e);
         }
     }
-    private void requestStartInfo() {
-        clientInMonitor.addMessage(new ClientServerMessage(Global.GET_WELCOME));
-    }
 
     private void execExit() {
         clientInMonitor.deactivate();
         clientOutMonitor.deactivate();
         isActive = false;
+    }
+
+    private void execSession(ClientServerMessage inMessage) {
+        sessionID = Integer.parseInt(inMessage.getArgument(Message.SESSION_IDX));
+    }
+
+    private void execGetUser(ClientServerMessage inMessage) {
+        user = new User(inMessage.getArgument(Message.USER_IDX)
+                , inMessage.getArgument(Message.USER_LOGIN_IDX)
+                , inMessage.getArgument(Message.USER_NAME_IDX)
+                , inMessage.getArgument(Message.USER_PASS_IDX));
+    }
+
+    private void execGetActiveUsers(ClientServerMessage inMessage) {
+        List<String> st = inMessage.getArguments();
+        System.out.println(st.toString());
+    }
+
+    private void execSendAll(ClientServerMessage inMessage) {
+        List<String> l = inMessage.getArguments();
+        String userTo = l.remove(0);
+        String userFrom = l.remove(0);
+        StringBuilder message = new StringBuilder();
+        l.forEach(message::append);
+        System.out.println(userFrom + " >> " + message);
     }
 
     public void setActiveUsers(List<String> activeUsers) {

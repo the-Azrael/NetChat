@@ -1,9 +1,9 @@
 public class User {
     private static int cnt = 0;
-    private int id = 0;
     private static final String DEFAULT_USER_PREFIX = "guest";
     private static final String DEFAULT_USER_NAME = "guest";
     private static final String DEFAULT_USER_PASS = "123";
+    private final int id;
     private String login;
     private String name;
     private String pass;
@@ -17,7 +17,7 @@ public class User {
         this.pass = pass;
     }
 
-    public User(String id, String login, String pass, String name) {
+    public User(String id, String login, String name, String pass) {
         this.id = Integer.parseInt(id);
         this.login = login;
         this.name = name;
@@ -73,5 +73,12 @@ public class User {
     @Override
     public String toString() {
         return this.getLogin() + " " + this.getPass();
+    }
+
+    public int equals(User o) {
+        return (this.getId() == o.getId()
+                && this.getLogin().equalsIgnoreCase(o.getLogin())
+                && this.getName().equalsIgnoreCase(o.getName())
+                && this.getPass().equalsIgnoreCase(o.getPass())) ? Global.EQUALS : Global.NOT_EQUALS;
     }
 }

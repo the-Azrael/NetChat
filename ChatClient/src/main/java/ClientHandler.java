@@ -33,9 +33,9 @@ public class ClientHandler extends Thread {
         showUserInfo();
         System.out.println("[1] - Авторизация");
         System.out.println("[2] - Сменить никнейм");
-        System.out.println("[2] - Общение, общий чат");
-        System.out.println("[3] - Общение, приватный чат");
-        System.out.println("[4] - Выход");
+        System.out.println("[3] - Общение, общий чат");
+        System.out.println("[4] - Общение, приватный чат");
+        System.out.println("[5] - Выход");
     }
 
     public void showAllChatMenu() {
@@ -77,13 +77,13 @@ public class ClientHandler extends Thread {
         switch (choice) {
             case "1" -> {
                 if (isConnected()) {
-                    sendGetUser();
+                    sendAuth(new Authorization().authorize());
                 } else {
                     System.out.println("Не запущено соединение с сервером!");
                 }
             }
             case "2" -> {
-                changeName("newName");
+                changeName();
             }
             case "3" -> {
                 if (isConnected()) {
@@ -146,10 +146,14 @@ public class ClientHandler extends Thread {
     }
 
     private void sendAuth(User user) {
-        clientSessionThread.getSession().getOutMonitor().addMessage(new ClientServerMessage(Global.GET_USER));
+        ClientServerMessage outMessage = new ClientServerMessage(Global.AUTH);
+        outMessage.setArguments(List.of(
+                new String[]{String.valueOf(user.getId()), user.getLogin(), user.getName(), user.getPass()}));
+        clientSessionThread.getSession().getOutMonitor().addMessage(outMessage);
     }
 
-    private void changeName(String name) {
+    private void changeName() {
+        String name = getChoice("Введите новый ник: ");
         User user = clientSessionThread.getSession().getUser();
         user.setName(name);
         ClientServerMessage outMessage = new ClientServerMessage(Global.CHANGE_NAME);
