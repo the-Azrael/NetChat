@@ -3,11 +3,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 public class UserManager {
-    private static final User user1 = new User("user1", "user1");
-    private static final User user2 = new User("user2", "user2");
-    private static final User user3 = new User("user3", "user3");
-    private static final User user4 = new User("user4", "user4");
-    private static final User user5 = new User("user5", "user5");
+    private static final User user1 = new User("user1", "user1", "user1");
+    private static final User user2 = new User("user2", "user2", "user2");
+    private static final User user3 = new User("user3", "user3", "user3");
+    private static final User user4 = new User("user4", "user4", "user4");
+    private static final User user5 = new User("user5", "user5", "user5");
     private static final CopyOnWriteArrayList<User> users = new CopyOnWriteArrayList<>();
 
     static {

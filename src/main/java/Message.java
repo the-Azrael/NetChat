@@ -1,4 +1,3 @@
-import java.sql.Timestamp;
 import java.util.List;
 
 interface Message {
@@ -12,9 +11,10 @@ interface Message {
     int USER_TO_IDX = USER_FROM_IDX + 1;
     int MESSAGE_IDX = USER_TO_IDX + 1;
     int SESSION_ID_IDX = 1;
-    int USER_ID = 0;
-    int USER_LOGIN_ID = USER_ID + 1;
-    int USER_PASS_ID = USER_LOGIN_ID + 1;
+    int USER_IDX = 0;
+    int USER_LOGIN_IDX = USER_IDX + 1;
+    int USER_NAME_IDX = USER_LOGIN_IDX + 1;
+    int USER_PASS_IDX = USER_NAME_IDX + 1;
     String NO_ARGS = "no-args";
 
     int getCnt();

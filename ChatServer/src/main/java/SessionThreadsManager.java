@@ -16,6 +16,10 @@ public class SessionThreadsManager extends Thread {
     public void run() {
         ServerMain.writeLog(getName() + " is started!");
         while (true) {
+            sessionThreads.stream().map(st -> (ServerSession) st.getSession())
+                    .filter(ss -> !ss.isActive())
+                    .map(ServerSession::getUser)
+                    .forEach(UserManager::logout);
             sessionThreads.removeIf(s -> !s.getSession().isActive());
         }
     }

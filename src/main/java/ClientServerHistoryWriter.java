@@ -2,14 +2,14 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-public class ServerHistoryWriter implements HistoryWriter {
+public class ClientServerHistoryWriter implements HistoryWriter {
     private String filePath;
     private File file;
     private FileWriter fileWriter;
     private HistoryMessages historyMessages;
     private boolean isActive = true;
 
-    public ServerHistoryWriter(String filePath, HistoryMessages historyMessages) throws IOException {
+    public ClientServerHistoryWriter(String filePath, HistoryMessages historyMessages) throws IOException {
         this.filePath = filePath;
         this.file = new File(filePath);
         this.fileWriter = new FileWriter(this.file);

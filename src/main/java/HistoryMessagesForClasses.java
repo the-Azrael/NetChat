@@ -1,4 +1,4 @@
-public final class HistoryMessagesForClasses {
+public class HistoryMessagesForClasses {
     public final String moduleName;
     public final HistoryMessages historyMessages;
 

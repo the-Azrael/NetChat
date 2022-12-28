@@ -75,13 +75,15 @@ public class ServerSession implements Session {
     public void process(Message inMessage) {
         switch (inMessage.getCommand()) {
             case Global.EXIT -> execExit();
+            case Global.GET_WELCOME -> execWelcome((ClientServerMessage) inMessage);
             case Global.ECHO -> execEcho((ClientServerMessage) inMessage);
             case Global.AUTH -> execAuth((ClientServerMessage) inMessage);
             case Global.GET_USER -> execGetUser((ClientServerMessage) inMessage);
-            case Global.SHOW_USERS -> execShowUsers((ClientServerMessage) inMessage);
+            case Global.GET_ACTIVE_USERS -> execGetActiveUsers((ClientServerMessage) inMessage);
             case Global.GET_SESSION_ID -> execGetSessionID((ClientServerMessage) inMessage);
             case Global.SEND_ALL -> execSendAll((ClientServerMessage) inMessage);
             case Global.SEND_USER -> execSendUser((ClientServerMessage) inMessage);
+            case Global.CHANGE_NAME -> execChangeName((ClientServerMessage) inMessage);
         }
     }
 
@@ -92,9 +94,6 @@ public class ServerSession implements Session {
         serverInThread.start();
         serverOutThread.start();
         ServerMain.writeLog(this.getClass() + " is started!");
-        serverInManager.addMessage(new ClientServerMessage(Global.GET_USER));
-        serverInManager.addMessage(new ClientServerMessage(Global.GET_SESSION_ID));
-        serverOutManager.addMessage(new ClientServerMessage(Global.WELCOME));
         while (isActive && serverInThread.isAlive() && serverOutThread.isAlive()) {
             if (!serverInManager.isEmpty()) {
                 ClientServerMessage inMessage = serverInManager.getMessage();
@@ -109,6 +108,17 @@ public class ServerSession implements Session {
         }
     }
 
+    private void execWelcome(ClientServerMessage inMessage) {
+        ClientServerMessage outMessage = new ClientServerMessage(inMessage);
+        serverOutManager.addMessage(outMessage);
+        inMessage.setCommand(Global.GET_SESSION_ID);
+        execGetSessionID(inMessage);
+        inMessage.setCommand(Global.GET_USER);
+        execGetUser(inMessage);
+        inMessage.setCommand(Global.GET_ACTIVE_USERS);
+        execGetActiveUsers(inMessage);
+    }
+
     private void execExit() {
         serverInManager.deactivate();
         serverOutManager.deactivate();
@@ -121,12 +131,18 @@ public class ServerSession implements Session {
     }
 
     private void execGetUser(ClientServerMessage inMessage) {
-        String[] args = new String[] { String.valueOf(getUser().getId()), getUser().getLogin(), getUser().getPass() };
+        String[] args = new String[] {
+                String.valueOf(getUser().getId()), getUser().getLogin(), getUser().getName(), getUser().getPass() };
         ClientServerMessage outMessage = new ClientServerMessage(inMessage, args);
         serverOutManager.addMessage(outMessage);
     }
 
-    private void execShowUsers(ClientServerMessage inMessage) {
+    private void execChangeName(ClientServerMessage inMessage) {
+        getUser().setName(inMessage.getArgument(Message.USER_NAME_IDX));
+        execGetUser(inMessage);
+    }
+
+    private void execGetActiveUsers(ClientServerMessage inMessage) {
         ClientServerMessage outMessage = new ClientServerMessage(inMessage);
         List<User> activeUsers = UserManager.getActiveUsers();
         outMessage.setArguments(activeUsers.stream().map(User::getLogin).collect(Collectors.toList()));
@@ -144,9 +160,10 @@ public class ServerSession implements Session {
 
     private void execAuth(ClientServerMessage inMessage) {
         ClientServerMessage outMessage = new ClientServerMessage(inMessage);
-        User findUser = new User(inMessage.getArgument(Message.USER_ID)
-                , inMessage.getArgument(Message.USER_LOGIN_ID)
-                , inMessage.getArgument(Message.USER_PASS_ID));
+        User findUser = new User(inMessage.getArgument(Message.USER_IDX)
+                , inMessage.getArgument(Message.USER_LOGIN_IDX)
+                , inMessage.getArgument(Message.USER_NAME_IDX)
+                , inMessage.getArgument(Message.USER_PASS_IDX));
         User newUser = UserManager.authorize(getUser(), findUser);
         List<String> args = Arrays.asList(
                 String.valueOf(newUser.getId()),

@@ -5,15 +5,20 @@ import java.util.List;
 import java.util.Scanner;
 
 public class ClientHandler extends Thread {
+    private static final int mainMenuLevel = 1;
+    private static final int allChatMenuLevel = 2;
+    private static final int privateChatMenuLevel = 3;
+    private static final String exitMainMenu = "/menu";
+    private int menuLevel = mainMenuLevel;
     private ClientSessionThread clientSessionThread;
     private Scanner scanner;
     private volatile boolean isActive = true;
-    private int lvl = 1;
     private volatile String toUser = "";
 
-    public void showMenu() {
-        int sessionId = 0;
+
+    public void showUserInfo() {
         String userName = "Не авторизирован";
+        int sessionId = 0;
         if (isAuthorized()) {
             userName = clientSessionThread.getSession().getUser().getLogin();
         }
@@ -22,25 +27,45 @@ public class ClientHandler extends Thread {
         }
         System.out.println("№ сессии: " + sessionId);
         System.out.println("Пользователь: " + userName);
+    }
+
+    public void showMenu() {
+        showUserInfo();
         System.out.println("[1] - Авторизация");
-        System.out.println("[2] - Показать активных пользователей");
-        System.out.println("[3] - Общение, общий чат");
-        System.out.println("[4] - Общение, приватный чат");
-        System.out.println("[5] - Соединение");
-        System.out.println("[6] - Выход");
+        System.out.println("[2] - Сменить никнейм");
+        System.out.println("[2] - Общение, общий чат");
+        System.out.println("[3] - Общение, приватный чат");
+        System.out.println("[4] - Выход");
     }
 
     public void showAllChatMenu() {
-        int sessionId = 0;
-        String userName = "Не авторизирован";
-        if (isAuthorized()) {
-            userName = clientSessionThread.getSession().getUser().getLogin();
+        showUserInfo();
+        String message = getChoice(" >> ");
+        if (message.equalsIgnoreCase(exitMainMenu)) {
+            menuLevel = mainMenuLevel;
+        } else {
+            ClientServerMessage chatMessage = new ClientServerMessage(Global.SEND_ALL);
+            List<String> args = new ArrayList<>();
+            args.add(clientSessionThread.getSession().getUser().getLogin());
+            chatMessage.setArguments(args);
+            chatMessage.addToArguments(message.split(Global.SPLITTER));
+            clientSessionThread.getSession().getOutMonitor().addMessage(chatMessage);
         }
-        if (isConnected()) {
-            sessionId = clientSessionThread.getSession().getSessionID();
+    }
+
+    public void showPrivateChatMenu() {
+        String message = getChoice(" >> ");
+        if (message.equalsIgnoreCase(exitMainMenu)) {
+            menuLevel = mainMenuLevel;
+        } else {
+            ClientServerMessage chatMessage = new ClientServerMessage(Global.SEND_USER);
+            List<String> args = new ArrayList<>();
+            args.add(clientSessionThread.getSession().getUser().getLogin());
+            args.add(clientSessionThread.getSession().getUser().getLogin());
+            args.add(message);
+            chatMessage.setArguments(args);
+            clientSessionThread.getSession().getOutMonitor().addMessage(chatMessage);
         }
-        System.out.println("№ сессии: " + sessionId);
-        System.out.println("Пользователь: " + userName);
     }
 
     private String getChoice(String requestText) {
@@ -50,58 +75,43 @@ public class ClientHandler extends Thread {
 
     private void handleChoice(String choice) {
         switch (choice) {
-            case ("1") -> {
+            case "1" -> {
                 if (isConnected()) {
                     sendGetUser();
                 } else {
                     System.out.println("Не запущено соединение с сервером!");
                 }
             }
-            case ("3") -> {
+            case "2" -> {
+                changeName("newName");
+            }
+            case "3" -> {
                 if (isConnected()) {
-                    lvl = 2;
+                    menuLevel = allChatMenuLevel;
                 }
             }
-            case ("4") -> {
+            case "4" -> {
                 if (isConnected()) {
-                    lvl = 3;
+                    menuLevel = privateChatMenuLevel;
                 }
             }
-            case ("5") -> {
-                if (!isConnected()) {
-                    connect();
-                }
-            }
-            case ("6") -> exit();
+            case "5" -> exit();
+            default -> System.out.println("Введен неверный пункт меню.");
         }
     }
 
     @Override
     public void run() {
         scanner = new Scanner(System.in);
+        connect();
         while(isActive) {
-            if (lvl == 1) {
+            if (menuLevel == 1) {
                 showMenu();
                 handleChoice(getChoice("Выбирите пункт: "));
-            } else if (lvl == 2) {
+            } else if (menuLevel == allChatMenuLevel) {
                 showAllChatMenu();
-                String message = getChoice(" >> ");
-                ClientServerMessage chatMessage = new ClientServerMessage(Global.SEND_ALL);
-                List<String> args = new ArrayList<>();
-                args.add(clientSessionThread.getSession().getUser().getLogin());
-                chatMessage.setArguments(args);
-                chatMessage.addToArguments(message.split(Global.SPLITTER));
-                clientSessionThread.getSession().getOutMonitor().addMessage(chatMessage);
-            } else if (lvl == 3) {
-                showAllChatMenu();
-                String message = getChoice(" >> ");
-                ClientServerMessage chatMessage = new ClientServerMessage(Global.SEND_USER);
-                List<String> args = new ArrayList<>();
-                args.add(clientSessionThread.getSession().getUser().getLogin());
-                args.add(clientSessionThread.getSession().getUser().getLogin());
-                args.add(message);
-                chatMessage.setArguments(args);
-                clientSessionThread.getSession().getOutMonitor().addMessage(chatMessage);
+            } else if (menuLevel == 3) {
+                showPrivateChatMenu();
             }
         }
     }
@@ -122,7 +132,7 @@ public class ClientHandler extends Thread {
             throw new RuntimeException(e);
         }
         clientSessionThread = new ClientSessionThread(socket);
-        clientSessionThread.getSession().getOutMonitor().addMessage(new ClientServerMessage(Global.GET_SESSION_ID));
+        clientSessionThread.getSession().getOutMonitor().addMessage(new ClientServerMessage(Global.GET_WELCOME));
     }
 
     private boolean isConnected() {
@@ -137,6 +147,15 @@ public class ClientHandler extends Thread {
 
     private void sendAuth(User user) {
         clientSessionThread.getSession().getOutMonitor().addMessage(new ClientServerMessage(Global.GET_USER));
+    }
+
+    private void changeName(String name) {
+        User user = clientSessionThread.getSession().getUser();
+        user.setName(name);
+        ClientServerMessage outMessage = new ClientServerMessage(Global.CHANGE_NAME);
+        outMessage.setArguments(List.of(
+                new String[]{String.valueOf(user.getId()), user.getLogin(), user.getName(), user.getPass()}));
+        clientSessionThread.getSession().getOutMonitor().addMessage(outMessage);
     }
 
     private void sendGetUser() {

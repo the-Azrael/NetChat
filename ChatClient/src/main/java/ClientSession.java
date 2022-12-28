@@ -75,21 +75,22 @@ public class ClientSession implements Session {
     @Override
     public void process(Message inMessage) {
         switch (inMessage.getCommand()) {
-            case (Global.WELCOME) -> {
-                System.out.println("Приветствие от сервера!");
-            }
-            case (Global.EXIT) -> {
-                execExit();
-            }
-            case (Global.GET_USER) -> {
+            case Global.GET_WELCOME -> System.out.println("Приветствие от сервера!");
+            case Global.EXIT -> execExit();
+            case Global.GET_USER -> {
                 System.out.println(inMessage);
-                user = new User(inMessage.getArgument(0), inMessage.getArgument(1), inMessage.getArgument(2));
+                user = new User(inMessage.getArgument(Message.USER_IDX)
+                        , inMessage.getArgument(Message.USER_LOGIN_IDX)
+                        , inMessage.getArgument(Message.USER_NAME_IDX)
+                        , inMessage.getArgument(Message.USER_PASS_IDX));
 
             }
-            case (Global.GET_SESSION_ID) -> {
-                sessionID = Integer.parseInt(inMessage.getArgument(0));
+            case Global.GET_SESSION_ID -> sessionID = Integer.parseInt(inMessage.getArgument(0));
+            case Global.GET_ACTIVE_USERS -> {
+                List<String> st = inMessage.getArguments();
+                System.out.println(st.toString());
             }
-            case (Global.SEND_ALL) -> {
+            case Global.SEND_ALL -> {
                 List<String> l = inMessage.getArguments();
                 String userTo = l.remove(0);
                 String userFrom = l.remove(0);
@@ -105,10 +106,11 @@ public class ClientSession implements Session {
     @Override
     public void run() {
         Thread clientInThread = new Thread(this.clientInMonitor);
+        clientInThread.start();
         Thread clientOutThread = new Thread(this.clientOutMonitor);
         clientOutThread.start();
-        clientInThread.start();
-        System.out.println(this.getClass() + " is started!");
+        ClientMain.writeLog(this.getClass() + " is started!");
+
         while (isActive || clientInThread.isAlive() || clientOutThread.isAlive()) {
             if (!clientInMonitor.isEmpty()) {
                 ClientServerMessage inMessage = clientInMonitor.getMessage();
@@ -116,11 +118,14 @@ public class ClientSession implements Session {
             }
         }
         try {
-            System.out.println(this.getClass() + " is stopped!");
+            ClientMain.writeLog(this.getClass() + " is stopped!");
             clientSocket.close();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+    private void requestStartInfo() {
+        clientInMonitor.addMessage(new ClientServerMessage(Global.GET_WELCOME));
     }
 
     private void execExit() {
